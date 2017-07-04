@@ -1,0 +1,248 @@
+/*
+ * Device Tree file for Marvell Armada 375 evaluation board
+ * (DB-88F6720)
+ *
+ *  Copyright (C) 2014 Marvell
+ *
+ * Gregory CLEMENT <gregory.clement@free-electrons.com>
+ * Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+ *
+ * This file is dual-licensed: you can use it either under the terms
+ * of the GPL or the X11 license, at your option. Note that this dual
+ * licensing only applies to this file, and not this project as a
+ * whole.
+ *
+ *  a) This file is free software; you can redistribute it and/or
+ *     modify it under the terms of the GNU General Public License as
+ *     published by the Free Software Foundation; either version 2 of the
+ *     License, or (at your option) any later version.
+ *
+ *     This file is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ * Or, alternatively,
+ *
+ *  b) Permission is hereby granted, free of charge, to any person
+ *     obtaining a copy of this software and associated documentation
+ *     files (the "Software"), to deal in the Software without
+ *     restriction, including without limitation the rights to use,
+ *     copy, modify, merge, publish, distribute, sublicense, and/or
+ *     sell copies of the Software, and to permit persons to whom the
+ *     Software is furnished to do so, subject to the following
+ *     conditions:
+ *
+ *     The above copyright notice and this permission notice shall be
+ *     included in all copies or substantial portions of the Software.
+ *
+ *     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ *     EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ *     OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ *     NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ *     HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ *     WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ *     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ *     OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/dts-v1/;
+#include <dt-bindings/gpio/gpio.h>
+#include "armada-375.dtsi"
+
+/ {
+	model = "WD My Cloud Gen2: Marvell Armada 375";
+	compatible = "marvell,a375-db", "marvell,armada375";
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	memory@0 {
+		device_type = "memory";
+		reg = <0x00000000 0x20000000>; /* 1/2 GB */
+	};
+
+	soc {
+		ranges = <MBUS_ID(0xf0, 0x01) 0 0xf1000000 0x100000
+			  MBUS_ID(0x01, 0x1d) 0 0xfff00000 0x100000
+			  MBUS_ID(0x09, 0x09) 0 0xf1100000 0x10000
+			  MBUS_ID(0x09, 0x05) 0 0xf1110000 0x10000>;
+	};
+
+	gpio-leds {
+		compatible = "gpio-leds";
+		pinctrl-names = "default";
+		pinctrl-0 = <&sys_led_pins>;
+
+		system-red {
+			label = "system-red";
+			gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;	// chip, pin, state (1=active-low)
+			// Triggers: none nand-disk timer oneshot heartbeat backlight gpio cpu0 cpu1 default-on
+			linux,default-trigger = "default-on";
+			default-state = "on";
+		};
+		system-green {
+			label = "system-green";
+			gpios = <&gpio1 11 GPIO_ACTIVE_HIGH>; // 43 (mpp43) - 32 (gpio in chip) = 11 (pin in this chip)
+			linux,default-trigger = "default-on";
+			default-state = "on";
+		};
+		system-blue {
+			label = "system-blue";
+			gpios = <&gpio0 22 GPIO_ACTIVE_HIGH>;
+			linux,default-trigger = "default-off";
+			default-state = "off";
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&btn_reset_pins>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		btn-reset {
+			label = "btn-reset";
+			gpios = <&gpio1 12 GPIO_ACTIVE_HIGH>; // 44-32=12
+			linux,code = <198>; // KEY_RESTART, from: include/uapi/linux/input-event-codes.h
+			gpio-key,wakeup;
+			//autorepeat;
+		};
+	};
+
+	usb3_phy_gpio: usb3-phy-gpio {
+		compatible = "usb-nop-xceiv";
+		vcc-supply = <&reg_usb3_vbus_gpio>;
+	};
+
+	reg_usb3_vbus_gpio: usb3-vbus-gpio {
+		compatible = "mv,vbus-regulator";
+		pinctrl-names = "default";
+		pinctrl-0 = <&xhci0_vbus_pins>;
+		regulator-name = "xhci0-vbus";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		enable-active-high;
+		regulator-always-on;
+		gpio = <&gpio0 13 GPIO_ACTIVE_LOW>;
+		regulator-state-mem {
+			regulator-off-in-suspend;
+		};
+	};
+};
+
+&pciec {
+	status = "okay";
+};
+
+/*
+ * The two PCIe units are accessible through
+ * standard PCIe slots on the board.
+ */
+&pcie0 {
+	/* Port 0, Lane 0 */
+	status = "disanled";
+};
+
+&pcie1 {
+	/* Port 1, Lane 0 */
+	status = "disanled";
+};
+
+&spi0 {
+	pinctrl-0 = <&spi0_pins>;
+	pinctrl-names = "default";
+
+	status = "okay";
+
+//	spi-flash@0 {
+//		#address-cells = <1>;
+//		#size-cells = <1>;
+//		//compatible = "n25q128a13", "jedec,spi-nor";
+//		// WDMC Gen2 needs kernel patch <=4.11
+//		compatible = "mx25l8005";
+//		reg = <0>; /* Chip select 0 */
+//		spi-max-frequency = <108000000>;
+//
+//	};
+
+	spi-flash@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		/* MX25L8006E */
+		compatible = "mxicy,mx25l8005", "jedec,spi-nor";
+		reg = <0>; /* Chip select 0 */
+		spi-max-frequency = <108000000>;
+
+		partition@0 {
+			label = "u-boot";
+			reg = <0x0 0x100000>;
+		};
+	};
+};
+
+&uart0 {
+	status = "okay";
+};
+
+&pinctrl {
+	sata_sd_pins: sata-sd-pins {
+		marvell,pins = "mpp63", "mpp66";
+		marvell,function = "gpio";
+	};
+
+	sys_led_pins: sys-led-pins {
+		marvell,pins = "mpp20", "mpp43", "mpp22"; // R G B
+		marvell,function = "gpio";
+	};
+
+	btn_reset_pins: btn-reset-pins {
+		marvell,pins = "mpp44";
+		marvell,function = "gpio";
+	};
+
+	xhci0_vbus_pins: xhci0-vbus-pins {
+		marvell,pins = "mpp13";
+		marvell,function = "gpio";
+	};
+};
+
+&sata {
+	status = "okay";
+	nr-ports = <2>;
+
+	pinctrl-0 = <&sata_sd_pins>;
+	pinctrl-names = "default";
+	sd-gpios = <&gpio1 31 GPIO_ACTIVE_HIGH>, <&gpio2 2 GPIO_ACTIVE_HIGH>;
+};
+
+&usb1 {
+	status = "okay";
+};
+
+&usb2 {
+	status = "okay";
+};
+
+&mdio {
+	phy0: ethernet-phy@0 {
+		reg = <0>;
+	};
+
+	phy3: ethernet-phy@3 {
+		reg = <3>;
+	};
+};
+
+&ethernet {
+	status = "okay";
+};
+
+
+&eth0 {
+	status = "okay";
+	phy = <&phy0>;
+	phy-mode = "mii";
+};
