@@ -43,6 +43,12 @@ WD My Cloud (Gen2) - wdmc-gen2 - Marvell ARMADA 375
 		partition on SATA drive.  Copy to /boot on 1st partition of
 		the usb stick or to 3rd partition of the harddrive.
 
+	- build-initramfs.sh
+
+		builds a minimal initramfs.  Can boot from kernel commandline,
+		usb-stick 2nd partition, hdd 3rd partition.
+		placed in /boot/uInitrd. rename it to uRamdisk.
+		
 * [alpine linux](https://alpinelinux.org/) diskless image
 
 	- alpine-wdmc-gen2-3.6.2-armhf.tar.gz
@@ -69,11 +75,10 @@ WD My Cloud (Gen2) - wdmc-gen2 - Marvell ARMADA 375
 	  usb stick.
 
 	  You should have:
-	  ```
--rwxr-xr-x    1 root     root            26 Jun 17 11:47 .alpine-release
--rwxr-xr-x    1 root     root          3427 Jan  1  1980 alpine.apkovl.tar.gz
-drwxr-xr-x    3 root     root          4096 Jun 17 11:47 apks
-drwxr-xr-x    5 root     root          4096 Jul  5 12:02 boot
-	```
-	on the usb stick.
-
+	  ```  
+	  `-rwxr-xr-x    1 root     root            26 Jun 17 11:47 .alpine-release`
+	  `-rwxr-xr-x    1 root     root          3427 Jan  1  1980 alpine.apkovl.tar.gz´
+	  `drwxr-xr-x    3 root     root          4096 Jun 17 11:47 apks`
+	  `drwxr-xr-x    5 root     root          4096 Jul  5 12:02 boot`
+          ```
+	  on the usb stick.
