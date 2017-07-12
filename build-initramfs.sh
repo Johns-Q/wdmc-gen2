@@ -54,7 +54,7 @@ for param in \$(cat /proc/cmdline); do
 done
 
 # try to mount the root filesystem.
-if [ "\${root}"x != "root=/dev/ram"x ]; then
+if [ "\${root}"x != "/dev/ram"x ]; then
 
 	mount -t \${rootfstype} -o \${ro},\${rootflags} \$(findfs \${root}) /newroot || rescue_shell "mount \${root} failed."
 fi
