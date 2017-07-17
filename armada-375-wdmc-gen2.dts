@@ -143,12 +143,12 @@
  */
 &pcie0 {
 	/* Port 0, Lane 0 */
-	status = "disanled";
+	status = "disabled";
 };
 
 &pcie1 {
 	/* Port 1, Lane 0 */
-	status = "disanled";
+	status = "disabled";
 };
 
 &spi0 {
